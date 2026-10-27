@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+/build/
+/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# DICOM 샘플 데이터 (PHI 포함 가능 - 커밋 금지)
+data/
+*.dcm
+.gstack/
+
+# 번역 생성물 (scripts/i18n.py release)
+src/dicom_tag_explorer/ui/resources/i18n/*.qm

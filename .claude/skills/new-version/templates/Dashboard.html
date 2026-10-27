@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!-- v{{VERSION}} 요구사항 카드가 대기·G1·G2·G3 열을 거쳐 완료 표로 이동하는 Gate 칸반 대시보드 -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard v{{VERSION}}</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --col: #eceef1; --card: #ffffff; --text: #1f2328; --muted: #656d76; --line: #d0d7de;
+    --backlog: #8c959f; --g1: #8250df; --g2: #0969da; --g3: #bf8700; --done: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --col: #161b22; --card: #1c2128; --text: #e6edf3; --muted: #8d96a0; --line: #30363d;
+      --backlog: #6e7681; --g1: #a371f7; --g2: #4493f8; --g3: #d29922; --done: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
+         font: 14px/1.5 "Segoe UI", "Malgun Gothic", sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { font-size: 16px; margin: 28px 0 10px; }
+  .meta { color: var(--muted); margin-bottom: 16px; }
+  .meta a { color: var(--g2); }
+  .progress { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); margin-bottom: 20px; }
+  .progress span { display: block; }
+  .board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; }
+  .col { background: var(--col); border-radius: 8px; padding: 10px; min-height: 120px; border-top: 4px solid var(--c); }
+  .col header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .col header b { font-size: 14px; }
+  .col header .n { color: var(--muted); font-size: 12px; }
+  .col .gate { color: var(--muted); font-size: 12px; margin-bottom: 8px; min-height: 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+  .card .id { font: 12px Consolas, monospace; color: var(--c); font-weight: 600; }
+  .card .name { font-weight: 600; margin: 2px 0 4px; }
+  .card .tags { font: 11px Consolas, monospace; color: var(--muted); word-break: break-word; }
+  .card .cat { float: right; font-size: 11px; color: var(--muted); }
+  .card .note { font-size: 12px; margin-top: 4px; }
+  .empty { color: var(--muted); font-size: 12px; text-align: center; padding: 12px 0; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--col); }
+  td.m { font: 12px Consolas, monospace; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DICOM Tag Explorer — v{{VERSION}}</h1>
+  <div class="meta">
+    최종 갱신 <span id="updated">{{DATE}}</span> ·
+    <a href="../DIR/v{{VERSION}}.md">DIR</a> · <a href="../Spec/v{{VERSION}}.md">Spec</a>
+  </div>
+  <div class="progress" id="progress"></div>
+
+  <div class="board" id="board"></div>
+
+  <h2>완료 항목</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>요구사항</th><th>SPEC</th><th>TC</th><th>G1</th><th>G2</th><th>G3</th></tr></thead>
+      <tbody id="done"></tbody>
+    </table>
+  </div>
+</main>
+
+<!--
+  데이터 편집 규칙 (gate-update 스킬)
+  - items[].stage 값은 "대기" / "G1" / "G2" / "G3" / "완료" 중 하나. 카드는 이 값의 열에 표시되고, "완료"는 열 없이 하단 완료 항목 표에만 표시된다.
+    · 대기: 접수만 됨  · G1: 요구사항·사양 작업 중  · G2: 구현 중  · G3: QA 중  · 완료: G3 통과
+  - Gate를 통과하면 passed에 "G#": "YYYY-MM-DD"를 추가하고 stage를 다음 열로 바꾼다.
+  - gates.G#.approved / by 는 Gate 전체 승인 일자와 승인자.
+  - 화면은 아래 JSON만으로 그려진다. HTML 본문은 수정하지 않는다.
+-->
+<script id="gates" type="application/json">
+{{GATES}}
+</script>
+<script id="items" type="application/json">
+{{ITEMS}}
+</script>
+<script>
+  const COLS = [
+    { key: "대기", label: "대기", c: "--backlog" },
+    { key: "G1", label: "G1 요구사항·사양", c: "--g1" },
+    { key: "G2", label: "G2 구현", c: "--g2" },
+    { key: "G3", label: "G3 QA", c: "--g3" },
+    { key: "완료", label: "완료", c: "--done", hidden: true },
+  ];
+  const items = JSON.parse(document.getElementById("items").textContent);
+  const gates = JSON.parse(document.getElementById("gates").textContent);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+  const board = document.getElementById("board");
+  const progress = document.getElementById("progress");
+  for (const col of COLS) {
+    const list = items.filter(it => it.stage === col.key);
+    const g = gates[col.key];
+    const gateText = g ? (g.approved ? `통과 ${esc(g.approved)} · ${esc(g.by)}` : "Gate 미통과") : "";
+    const el = document.createElement("section");
+    el.className = "col";
+    el.style.setProperty("--c", `var(${col.c})`);
+    el.innerHTML = `<header><b>${col.label}</b><span class="n">${list.length}건</span></header>
+      <div class="gate">${gateText}</div>` +
+      (list.length ? list.map(it => `<div class="card" style="--c: var(${col.c})">
+        <span class="cat">${esc(it.cat)}</span><div class="id">${esc(it.id)}</div>
+        <div class="name">${esc(it.name)}</div>
+        <div class="tags">${esc((it.spec || []).join(" "))}<br>${esc((it.tc || []).join(" "))}</div>
+        ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}</div>`).join("")
+        : `<div class="empty">없음</div>`);
+    if (!col.hidden) board.appendChild(el);
+    if (items.length && list.length) {
+      const bar = document.createElement("span");
+      bar.style.width = `${(list.length / items.length) * 100}%`;
+      bar.style.background = `var(${col.c})`;
+      bar.title = `${col.label} ${list.length}건`;
+      progress.appendChild(bar);
+    }
+  }
+
+  const done = items.filter(it => it.stage === "완료");
+  document.getElementById("done").innerHTML = done.length
+    ? done.map(it => `<tr><td class="m">${esc(it.id)}</td><td>${esc(it.name)}</td>
+        <td class="m">${esc((it.spec || []).join(", "))}</td><td class="m">${esc((it.tc || []).join(", "))}</td>
+        <td>${esc(it.passed?.G1)}</td><td>${esc(it.passed?.G2)}</td><td>${esc(it.passed?.G3)}</td></tr>`).join("")
+    : `<tr><td colspan="7" class="empty">아직 완료된 항목이 없습니다.</td></tr>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+# 런타임 의존성 (Spec v0.1.0 3.2). 변경 시 license-check 후 packaging/license_policy.toml 과 THIRD_PARTY_LICENSES.md 를 함께 갱신한다.
+PySide6-Essentials==6.11.0
+shiboken6==6.11.0
+pydicom==3.0.1
+wsidicom==0.29.0
+Pillow==12.1.1
+numpy==2.4.3
+marshmallow==3.26.2
+dicomweb-client==0.59.3
+requests==2.32.5
+urllib3==2.6.2
+idna==3.11
+charset-normalizer==3.4.4
+certifi==2026.1.4
+retrying==1.4.2
+fsspec==2026.4.0
+universal-pathlib==0.2.6
+packaging==25.0

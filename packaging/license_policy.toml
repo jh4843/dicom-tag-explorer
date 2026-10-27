@@ -1,0 +1,153 @@
+# 빌드 시 gen_notices가 대조하는 라이선스 승인 대장 (Spec v0.1.0 3.2, THIRD_PARTY_LICENSES.md와 함께 갱신).
+# meta는 gen_notices.meta_license()가 만드는 문자열과 정확히 같아야 한다. 다르면 재확인이 필요하므로 빌드가 실패한다.
+
+[policy]
+allowed_verdicts = ["허용", "허용 (빌드 도구)", "조건부(LGPL)", "조건부(미수정)", "조건부(EULA)"]
+allowed_spdx = [
+    "MIT", "MIT-CMU", "BSD-2-Clause", "BSD-3-Clause", "0BSD", "Apache-2.0", "ISC", "Zlib", "PSF-2.0",
+    "MS-PL", "HPND", "Unlicense", "CC0-1.0",
+    "LGPL-2.1-only", "LGPL-2.1-or-later", "LGPL-3.0-only", "LGPL-3.0-or-later",
+]
+# 판정이 일치할 때만 허용하는 라이선스 (LIC-01, LIC-03)
+conditional_spdx = { "MPL-2.0" = "조건부(미수정)", "LicenseRef-Microsoft-Distributable-Code" = "조건부(EULA)" }
+allowed_exceptions = ["GCC-exception-3.1", "LicenseRef-PyInstaller-Bootloader-exception"]
+# 번들 허용 Qt 모듈 (Qt6{이름}.dll). Charts, DataVisualization, VirtualKeyboard 등 GPL 전용 모듈 혼입 방지
+allowed_qt_modules = ["Core", "Gui", "Widgets", "Svg"]
+# LIC-02: FreeType(FTL 선택) 크레딧. 문구는 FTL 원문(docs/FTL.TXT)과 같고, <year>는 번들 FreeType의 저작권 연도 2025이다.
+# 확인: Qt 6.11.0 번들 FreeType 2.14.2, Pillow 12.1.1 번들 FreeType 2.14.1(2025-09-11 배포, 소스 저작권 1996-2025) 모두 2025.
+freetype_credit = "Portions of this software are copyright © 2025 The FreeType Project (https://freetype.org). All rights reserved."
+
+# ---- 런타임 (배포물에 포함) ----
+[packages."pydicom"]
+version = "3.0.1"
+meta = "Classifier: MIT License"
+spdx = "MIT"
+verdict = "허용"
+
+[packages."wsidicom"]
+version = "0.29.0"
+meta = "Apache-2.0"
+spdx = "Apache-2.0"
+verdict = "허용"
+
+[packages."pyside6-essentials"]
+version = "6.11.0"
+meta = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+spdx = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+verdict = "조건부(LGPL)"
+# wheel에는 상용 안내문만 있으므로 LGPL 원문과 Qt 서드파티 고지를 붙인다
+extra_texts = ["licenses/LGPL-3.0.txt", "licenses/GPL-3.0.txt", "licenses/Qt-6.11.0-third-party.txt"]
+title = "PySide6-Essentials / Qt"
+
+[packages."shiboken6"]
+version = "6.11.0"
+meta = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+spdx = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+verdict = "조건부(LGPL)"
+extra_texts = ["licenses/LGPL-3.0.txt"]
+
+[packages."pillow"]
+version = "12.1.1"
+meta = "MIT-CMU"
+spdx = "MIT-CMU"
+verdict = "허용"
+
+[packages."numpy"]
+version = "2.4.3"
+meta = "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
+spdx = "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0"
+verdict = "허용"
+
+[packages."marshmallow"]
+version = "3.26.2"
+meta = "Classifier: MIT License"
+spdx = "MIT"
+verdict = "허용"
+
+[packages."dicomweb-client"]
+version = "0.59.3"
+meta = "Classifier: MIT License"
+spdx = "MIT"
+verdict = "허용"
+
+[packages."requests"]
+version = "2.32.5"
+meta = "Apache-2.0"
+spdx = "Apache-2.0"
+verdict = "허용"
+
+[packages."urllib3"]
+version = "2.6.2"
+meta = "MIT"
+spdx = "MIT"
+verdict = "허용"
+
+[packages."idna"]
+version = "3.11"
+meta = "BSD-3-Clause"
+spdx = "BSD-3-Clause"
+verdict = "허용"
+
+[packages."charset-normalizer"]
+version = "3.4.4"
+meta = "MIT"
+spdx = "MIT"
+verdict = "허용"
+
+[packages."certifi"]
+version = "2026.1.4"
+meta = "MPL-2.0"
+spdx = "MPL-2.0"
+verdict = "조건부(미수정)"
+note = "LIC-01. 수정 없이 사용한다. 소스: https://pypi.org/project/certifi/2026.1.4/#files"
+
+[packages."retrying"]
+version = "1.4.2"
+meta = "Apache-2.0"
+spdx = "Apache-2.0"
+verdict = "허용"
+
+[packages."fsspec"]
+version = "2026.4.0"
+meta = "BSD-3-Clause"
+spdx = "BSD-3-Clause"
+verdict = "허용"
+
+[packages."universal-pathlib"]
+version = "0.2.6"
+meta = "MIT License"
+spdx = "MIT"
+verdict = "허용"
+
+[packages."packaging"]
+version = "25.0"
+meta = "Classifier: Apache Software License; BSD License"
+spdx = "Apache-2.0 OR BSD-2-Clause"
+verdict = "허용"
+
+# exe에 들어가는 부트로더와 rthooks
+[packages."pyinstaller"]
+version = "6.19.0"
+meta = "GPLv2-or-later with a special exception which allows to use PyInstaller to build and distribute non-free programs (including commercial ones)"
+spdx = "GPL-2.0-or-later WITH LicenseRef-PyInstaller-Bootloader-exception"
+verdict = "허용 (빌드 도구)"
+
+[packages."pyinstaller-hooks-contrib"]
+version = "2026.3"
+meta = "Classifier: Apache Software License; GNU General Public License v2 (GPLv2)"
+spdx = "Apache-2.0"
+verdict = "허용 (빌드 도구)"
+note = "exe에 번들되는 rthooks는 Apache-2.0. GPL 훅은 빌드 때만 실행된다"
+
+# ---- 배포판이 아닌 구성요소 ----
+[runtime."python"]
+title = "Python 런타임"
+spdx = "PSF-2.0"
+verdict = "허용"
+
+[runtime."msvc"]
+title = "Microsoft Visual C++ 런타임"
+version = "14.x"
+spdx = "LicenseRef-Microsoft-Distributable-Code"
+verdict = "조건부(EULA)"
+note = "LIC-03. 배포 시 EULA에 Microsoft 보호 조항을 넣는다. 아래는 Python Windows 빌드 LICENSE의 해당 조건이다"

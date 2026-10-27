@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- DICOM Tag Explorer 앱 아이콘: WSI 피라미드를 쿼드트리 타일로 표현 (Design System 토큰 색) -->
+  <rect x="12" y="12" width="232" height="232" rx="52" fill="#12151a"/>
+  <rect x="12.5" y="12.5" width="231" height="231" rx="51.5" fill="none" stroke="#2c333d"/>
+  <rect x="52" y="52" width="72" height="72" rx="10" fill="#4c9dff"/>
+  <rect x="52" y="132" width="72" height="72" rx="10" fill="#4c9dff"/>
+  <rect x="132" y="132" width="72" height="72" rx="10" fill="#4c9dff"/>
+  <rect x="132" y="52" width="32" height="32" rx="6" fill="#6cb2ff"/>
+  <rect x="172" y="52" width="32" height="32" rx="6" fill="#6cb2ff"/>
+  <rect x="172" y="92" width="32" height="32" rx="6" fill="#6cb2ff"/>
+  <rect x="132" y="92" width="14" height="14" rx="3" fill="#cce4f7"/>
+  <rect x="150" y="92" width="14" height="14" rx="3" fill="#f2b33d"/>
+  <rect x="132" y="110" width="14" height="14" rx="3" fill="#cce4f7"/>
+  <rect x="150" y="110" width="14" height="14" rx="3" fill="#cce4f7"/>
+</svg>

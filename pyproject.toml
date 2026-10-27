@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dicom-tag-explorer"
+version = "0.1.0"
+description = "WSI DICOM viewer / explorer"
+requires-python = ">=3.14,<3.15"
+# 런타임 의존성의 정확한 버전은 requirements.txt (== 고정)
+dependencies = [
+    "PySide6-Essentials",
+    "pydicom",
+    "wsidicom",
+    "Pillow",
+    "numpy",
+]
+
+[project.gui-scripts]
+dicom-tag-explorer = "dicom_tag_explorer.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "scripts", "."]
+addopts = "-ra"

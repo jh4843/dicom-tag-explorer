@@ -1,0 +1,295 @@
+{
+  "version": 1,
+  "grid": "24x24 viewBox, 선 1.75px, round cap/join. 16·20·24px로 표시",
+  "theme": "dark",
+  "colors": {
+    "icon-ink": "#C9D1DC",
+    "accent": "#4C9DFF",
+    "danger": "#FF6B6B",
+    "warning": "#F2B33D",
+    "ink-faint": "#7D8796",
+    "icon-knockout": "#12151A"
+  },
+  "recolor": {
+    "light": {
+      "#C9D1DC": "#2F3640",
+      "#4C9DFF": "#0A66D1",
+      "#FF6B6B": "#C62828",
+      "#F2B33D": "#9A5B00",
+      "#7D8796": "#6B7480",
+      "#12151A": "#FFFFFF"
+    }
+  },
+  "license": "VIEWORKS 자체 제작. 서드파티 라이선스 없음",
+  "categories": {
+    "file": "파일·편집",
+    "search": "검색",
+    "view": "보기·이미지",
+    "window": "창·작업",
+    "tree": "탐색 트리",
+    "tag": "Tag Tree",
+    "status": "상태"
+  },
+  "icons": {
+    "open-file": {
+      "file": "open-file.svg",
+      "category": "file",
+      "usage": "파일 > 파일 열기 (Ctrl+O)"
+    },
+    "open-folder": {
+      "file": "open-folder.svg",
+      "category": "file",
+      "usage": "파일 > 폴더 열기 (Ctrl+Shift+O)"
+    },
+    "close-file": {
+      "file": "close-file.svg",
+      "category": "file",
+      "usage": "파일 > 닫기 (Ctrl+W)"
+    },
+    "close-all": {
+      "file": "close-all.svg",
+      "category": "file",
+      "usage": "파일 > 모두 닫기 (Ctrl+Shift+W)"
+    },
+    "recent": {
+      "file": "recent.svg",
+      "category": "file",
+      "usage": "파일 > 최근 파일"
+    },
+    "copy": {
+      "file": "copy.svg",
+      "category": "file",
+      "usage": "편집 > 복사 (Ctrl+C), 우클릭 메뉴"
+    },
+    "goto-offset": {
+      "file": "goto-offset.svg",
+      "category": "file",
+      "usage": "Offset으로 이동 (Ctrl+G)"
+    },
+    "about": {
+      "file": "about.svg",
+      "category": "file",
+      "usage": "설정 > 정보 (버전)"
+    },
+    "settings": {
+      "file": "settings.svg",
+      "category": "window",
+      "usage": "타이틀바 설정 버튼, 설정 창 (언어·테마·라이선스) (Ctrl+,)"
+    },
+    "language": {
+      "file": "language.svg",
+      "category": "file",
+      "usage": "설정 > 언어 (English / 한국어)"
+    },
+    "theme": {
+      "file": "theme.svg",
+      "category": "file",
+      "usage": "설정 > 테마 (다크 / 라이트)"
+    },
+    "help": {
+      "file": "help.svg",
+      "category": "file",
+      "usage": "리본 도움말 탭, 도움말 (F1)"
+    },
+    "license": {
+      "file": "license.svg",
+      "category": "file",
+      "usage": "설정 > 라이선스 (서드파티 고지)"
+    },
+    "search": {
+      "file": "search.svg",
+      "category": "search",
+      "usage": "통합 검색 입력창 (Ctrl+F)"
+    },
+    "search-advanced": {
+      "file": "search-advanced.svg",
+      "category": "search",
+      "usage": "상세 검색 토글 (Ctrl+Shift+F)"
+    },
+    "prev": {
+      "file": "prev.svg",
+      "category": "search",
+      "usage": "이전 일치 (Shift+F3)"
+    },
+    "next": {
+      "file": "next.svg",
+      "category": "search",
+      "usage": "다음 일치 (F3)"
+    },
+    "clear": {
+      "file": "clear.svg",
+      "category": "search",
+      "usage": "상세 검색 Clear"
+    },
+    "zoom-in": {
+      "file": "zoom-in.svg",
+      "category": "view",
+      "usage": "Image 확대 (Ctrl+=)"
+    },
+    "zoom-out": {
+      "file": "zoom-out.svg",
+      "category": "view",
+      "usage": "Image 축소 (Ctrl+-)"
+    },
+    "zoom-fit": {
+      "file": "zoom-fit.svg",
+      "category": "view",
+      "usage": "Image 맞춤 (Ctrl+0)"
+    },
+    "zoom-actual": {
+      "file": "zoom-actual.svg",
+      "category": "view",
+      "usage": "Image 1:1 (Ctrl+Alt+0)"
+    },
+    "rotate-left": {
+      "file": "rotate-left.svg",
+      "category": "view",
+      "usage": "좌회전 90° (Ctrl+Shift+R)"
+    },
+    "rotate-right": {
+      "file": "rotate-right.svg",
+      "category": "view",
+      "usage": "우회전 90° (Ctrl+R)"
+    },
+    "maximize": {
+      "file": "maximize.svg",
+      "category": "view",
+      "usage": "영역 최대화 (F11)"
+    },
+    "restore": {
+      "file": "restore.svg",
+      "category": "view",
+      "usage": "영역 복원 (F11, Esc)"
+    },
+    "window-minimize": {
+      "file": "window-minimize.svg",
+      "category": "window",
+      "usage": "타이틀바 최소화 (작업 표시줄로)"
+    },
+    "window-maximize": {
+      "file": "window-maximize.svg",
+      "category": "window",
+      "usage": "타이틀바 최대화"
+    },
+    "window-restore": {
+      "file": "window-restore.svg",
+      "category": "window",
+      "usage": "타이틀바 이전 크기로 복원"
+    },
+    "window-close": {
+      "file": "window-close.svg",
+      "category": "window",
+      "usage": "타이틀바 닫기"
+    },
+    "ribbon-collapse": {
+      "file": "ribbon-collapse.svg",
+      "category": "window",
+      "usage": "리본 접기 (Ctrl+F1)"
+    },
+    "ribbon-expand": {
+      "file": "ribbon-expand.svg",
+      "category": "window",
+      "usage": "리본 펼치기 (Ctrl+F1)"
+    },
+    "dock-float": {
+      "file": "dock-float.svg",
+      "category": "window",
+      "usage": "탐색 Dock Floating 전환"
+    },
+    "close": {
+      "file": "close.svg",
+      "category": "window",
+      "usage": "Dock 닫기, 패널 닫기"
+    },
+    "stop": {
+      "file": "stop.svg",
+      "category": "window",
+      "usage": "상태바 작업 취소 (Esc)"
+    },
+    "folder": {
+      "file": "folder.svg",
+      "category": "tree",
+      "usage": "파일 탭 폴더 노드"
+    },
+    "dicom-file": {
+      "file": "dicom-file.svg",
+      "category": "tree",
+      "usage": "파일 탭 DICOM 파일, Non-WSI 파일"
+    },
+    "wsi-slide": {
+      "file": "wsi-slide.svg",
+      "category": "tree",
+      "usage": "WSI 탭 슬라이드(WSI 이미지) 노드"
+    },
+    "wsi-volume": {
+      "file": "wsi-volume.svg",
+      "category": "tree",
+      "usage": "VOLUME 레벨 Instance (피라미드)"
+    },
+    "wsi-label": {
+      "file": "wsi-label.svg",
+      "category": "tree",
+      "usage": "LABEL Instance"
+    },
+    "wsi-overview": {
+      "file": "wsi-overview.svg",
+      "category": "tree",
+      "usage": "OVERVIEW Instance"
+    },
+    "wsi-thumbnail": {
+      "file": "wsi-thumbnail.svg",
+      "category": "tree",
+      "usage": "THUMBNAIL Instance"
+    },
+    "dicomdir": {
+      "file": "dicomdir.svg",
+      "category": "tree",
+      "usage": "DICOMDIR 루트 노드, 파일 > DICOMDIR 열기"
+    },
+    "patient": {
+      "file": "patient.svg",
+      "category": "tree",
+      "usage": "DICOMDIR PATIENT 레코드"
+    },
+    "study": {
+      "file": "study.svg",
+      "category": "tree",
+      "usage": "DICOMDIR STUDY 레코드"
+    },
+    "series": {
+      "file": "series.svg",
+      "category": "tree",
+      "usage": "DICOMDIR SERIES 레코드"
+    },
+    "image-record": {
+      "file": "image-record.svg",
+      "category": "tree",
+      "usage": "DICOMDIR IMAGE 레코드"
+    },
+    "sequence": {
+      "file": "sequence.svg",
+      "category": "tag",
+      "usage": "Tag Tree SQ 노드"
+    },
+    "item": {
+      "file": "item.svg",
+      "category": "tag",
+      "usage": "Tag Tree Item 노드"
+    },
+    "error": {
+      "file": "error.svg",
+      "category": "status",
+      "usage": "열기 실패, 디코딩 실패, 파일 없음"
+    },
+    "warning": {
+      "file": "warning.svg",
+      "category": "status",
+      "usage": "부분 손상(중간까지 파싱)"
+    },
+    "cancelled": {
+      "file": "cancelled.svg",
+      "category": "status",
+      "usage": "읽기 취소된 파일"
+    }
+  }
+}

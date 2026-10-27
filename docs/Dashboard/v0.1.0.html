@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<!-- v0.1.0 요구사항 카드가 대기·G1·G2·G3 열을 거쳐 완료 표로 이동하는 Gate 칸반 대시보드 -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard v0.1.0</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --col: #eceef1; --card: #ffffff; --text: #1f2328; --muted: #656d76; --line: #d0d7de;
+    --backlog: #8c959f; --g1: #8250df; --g2: #0969da; --g3: #bf8700; --done: #1a7f37;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --col: #161b22; --card: #1c2128; --text: #e6edf3; --muted: #8d96a0; --line: #30363d;
+      --backlog: #6e7681; --g1: #a371f7; --g2: #4493f8; --g3: #d29922; --done: #3fb950;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
+         font: 14px/1.5 "Segoe UI", "Malgun Gothic", sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  h2 { font-size: 16px; margin: 28px 0 10px; }
+  .meta { color: var(--muted); margin-bottom: 16px; }
+  .meta a { color: var(--g2); }
+  .progress { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--line); margin-bottom: 20px; }
+  .progress span { display: block; }
+  .board { display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; }
+  .col { background: var(--col); border-radius: 8px; padding: 10px; min-height: 120px; border-top: 4px solid var(--c); }
+  .col header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .col header b { font-size: 14px; }
+  .col header .n { color: var(--muted); font-size: 12px; }
+  .col .gate { color: var(--muted); font-size: 12px; margin-bottom: 8px; min-height: 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; }
+  .card .id { font: 12px Consolas, monospace; color: var(--c); font-weight: 600; }
+  .card .name { font-weight: 600; margin: 2px 0 4px; }
+  .card .tags { font: 11px Consolas, monospace; color: var(--muted); word-break: break-word; }
+  .card .cat { float: right; font-size: 11px; color: var(--muted); }
+  .card .note { font-size: 12px; margin-top: 4px; }
+  .empty { color: var(--muted); font-size: 12px; text-align: center; padding: 12px 0; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--col); }
+  td.m { font: 12px Consolas, monospace; }
+</style>
+</head>
+<body>
+<main>
+  <h1>DICOM Tag Explorer — v0.1.0</h1>
+  <div class="meta">
+    최종 갱신 <span id="updated">2026-10-27</span> ·
+    <a href="../DIR/v0.1.0.md">DIR</a> · <a href="../Spec/v0.1.0.md">Spec</a>
+  </div>
+  <div class="progress" id="progress"></div>
+
+  <div class="board" id="board"></div>
+
+  <h2>완료 항목</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>요구사항</th><th>SPEC</th><th>TC</th><th>G1</th><th>G2</th><th>G3</th></tr></thead>
+      <tbody id="done"></tbody>
+    </table>
+  </div>
+</main>
+
+<!--
+  데이터 편집 규칙 (gate-update 스킬)
+  - items[].stage 값은 "대기" / "G1" / "G2" / "G3" / "완료" 중 하나. 카드는 이 값의 열에 표시되고, "완료"는 열 없이 하단 완료 항목 표에만 표시된다.
+    · 대기: 접수만 됨  · G1: 요구사항·사양 작업 중  · G2: 구현 중  · G3: QA 중  · 완료: G3 통과
+  - Gate를 통과하면 passed에 "G#": "YYYY-MM-DD"를 추가하고 stage를 다음 열로 바꾼다.
+  - gates.G#.approved / by 는 Gate 전체 승인 일자와 승인자.
+  - 화면은 아래 JSON만으로 그려진다. HTML 본문은 수정하지 않는다.
+-->
+<script id="gates" type="application/json">
+{
+  "G1": {
+    "approved": "2026-10-26 (재승인)",
+    "by": "leader, 사용자"
+  },
+  "G2": {
+    "approved": "2026-10-26",
+    "by": "leader"
+  },
+  "G3": {
+    "approved": "",
+    "by": ""
+  }
+}
+</script>
+<script id="items" type="application/json">
+[
+  {
+    "id": "DIR-001",
+    "name": "WSI SOP Class 우선 지원",
+    "cat": "DICOM 적합성",
+    "spec": [
+      "SPEC-001",
+      "SPEC-002",
+      "SPEC-003"
+    ],
+    "tc": [
+      "TC-001",
+      "TC-002",
+      "TC-003",
+      "TC-051"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-002",
+    "name": "Tag Tree 표시",
+    "cat": "기능",
+    "spec": [
+      "SPEC-004"
+    ],
+    "tc": [
+      "TC-004",
+      "TC-005"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-003",
+    "name": "Tag Tree 컬럼 구성",
+    "cat": "기능",
+    "spec": [
+      "SPEC-005",
+      "SPEC-006"
+    ],
+    "tc": [
+      "TC-006",
+      "TC-007"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-004",
+    "name": "RAW Hex 뷰",
+    "cat": "기능",
+    "spec": [
+      "SPEC-007"
+    ],
+    "tc": [
+      "TC-008"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-005",
+    "name": "Tag → Hex 하이라이트",
+    "cat": "기능",
+    "spec": [
+      "SPEC-008"
+    ],
+    "tc": [
+      "TC-009"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-006",
+    "name": "Hex → Tag 역선택",
+    "cat": "기능",
+    "spec": [
+      "SPEC-009"
+    ],
+    "tc": [
+      "TC-010",
+      "TC-011"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-007",
+    "name": "이미지 Pan·Zoom·Rotate",
+    "cat": "기능",
+    "spec": [
+      "SPEC-010",
+      "SPEC-011"
+    ],
+    "tc": [
+      "TC-012",
+      "TC-013"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-008",
+    "name": "통합 검색",
+    "cat": "기능",
+    "spec": [
+      "SPEC-012"
+    ],
+    "tc": [
+      "TC-014",
+      "TC-015",
+      "TC-052"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-009",
+    "name": "상세 검색",
+    "cat": "기능",
+    "spec": [
+      "SPEC-013"
+    ],
+    "tc": [
+      "TC-016",
+      "TC-052",
+      "TC-053"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-010",
+    "name": "다중 파일 열기",
+    "cat": "기능",
+    "spec": [
+      "SPEC-014",
+      "SPEC-015",
+      "SPEC-016"
+    ],
+    "tc": [
+      "TC-017",
+      "TC-018",
+      "TC-019"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "G3 미실시: TC-019 실제 Alt+F4 키 확인 필요(나머지 통과)"
+  },
+  {
+    "id": "DIR-011",
+    "name": "좌측 Pane Docking·Floating",
+    "cat": "기능",
+    "spec": [
+      "SPEC-017"
+    ],
+    "tc": [
+      "TC-020"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-012",
+    "name": "파일 기준 트리",
+    "cat": "기능",
+    "spec": [
+      "SPEC-018"
+    ],
+    "tc": [
+      "TC-021"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-013",
+    "name": "WSI 이미지 기준 트리",
+    "cat": "기능",
+    "spec": [
+      "SPEC-019"
+    ],
+    "tc": [
+      "TC-022"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-014",
+    "name": "DICOMDIR 기준 트리",
+    "cat": "기능",
+    "spec": [
+      "SPEC-020"
+    ],
+    "tc": [
+      "TC-023",
+      "TC-024"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-015",
+    "name": "Instance 선택 시 우측 표시",
+    "cat": "기능",
+    "spec": [
+      "SPEC-021",
+      "SPEC-022",
+      "SPEC-023"
+    ],
+    "tc": [
+      "TC-025",
+      "TC-026",
+      "TC-027"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-27"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-016",
+    "name": "WSI 피라미드 슬라이드 뷰",
+    "cat": "기능",
+    "spec": [
+      "SPEC-024",
+      "SPEC-025"
+    ],
+    "tc": [
+      "TC-028",
+      "TC-029",
+      "TC-030",
+      "TC-031",
+      "TC-050"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-017",
+    "name": "Windows 10/11 동작",
+    "cat": "비기능",
+    "spec": [
+      "SPEC-026"
+    ],
+    "tc": [
+      "TC-032"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "G3 미실시: TC-032 150% 배율·Windows 10 수동 확인 필요"
+  },
+  {
+    "id": "DIR-018",
+    "name": "상업적 무료 라이브러리만 사용",
+    "cat": "라이선스",
+    "spec": [
+      "SPEC-027"
+    ],
+    "tc": [
+      "TC-033"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-019",
+    "name": "고지 파일 자동 생성",
+    "cat": "라이선스",
+    "spec": [
+      "SPEC-028"
+    ],
+    "tc": [
+      "TC-034",
+      "TC-035"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "배포 형식 변경(onedir 단독, 2026-10-27)으로 TC-035 새 빌드 재시험 필요"
+  },
+  {
+    "id": "DIR-020",
+    "name": "라이선스 표시",
+    "cat": "라이선스",
+    "spec": [
+      "SPEC-029"
+    ],
+    "tc": [
+      "TC-036"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "배포 형식 변경(onedir 단독, 2026-10-27)으로 TC-036 새 빌드 재시험 필요"
+  },
+  {
+    "id": "DIR-021",
+    "name": "onedir 배포 빌드",
+    "cat": "비기능",
+    "spec": [
+      "SPEC-030"
+    ],
+    "tc": [
+      "TC-037"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "배포 형식 변경(onedir 단독, 2026-10-27)으로 TC-037 새 빌드 재시험 필요. Python 없는 PC 확인 필요(사용자 협조)"
+  },
+  {
+    "id": "DIR-022",
+    "name": "LGPL Qt 교체 가능 배포",
+    "cat": "라이선스",
+    "spec": [
+      "SPEC-031"
+    ],
+    "tc": [
+      "TC-038"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "배포 형식 변경(onedir 단독, 2026-10-27)으로 TC-038 새 교체 절차 재시험 필요"
+  },
+  {
+    "id": "DIR-023",
+    "name": "설정 창",
+    "cat": "기능",
+    "spec": [
+      "SPEC-032"
+    ],
+    "tc": [
+      "TC-039"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": "저작권 문구 임시값, G3 사용자 확인 (D-17)"
+  },
+  {
+    "id": "DIR-024",
+    "name": "영어·한국어 전환",
+    "cat": "기능",
+    "spec": [
+      "SPEC-033",
+      "SPEC-034"
+    ],
+    "tc": [
+      "TC-040",
+      "TC-041"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-025",
+    "name": "다크 기본 테마 전환",
+    "cat": "기능",
+    "spec": [
+      "SPEC-035",
+      "SPEC-036"
+    ],
+    "tc": [
+      "TC-042",
+      "TC-043",
+      "TC-044"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  },
+  {
+    "id": "DIR-026",
+    "name": "커스텀 타이틀바",
+    "cat": "기능",
+    "spec": [
+      "SPEC-037"
+    ],
+    "tc": [
+      "TC-045"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "G3 미실시: TC-045 Snap·크기 조절 등 실제 마우스·키보드, 150%, Windows 10 필요"
+  },
+  {
+    "id": "DIR-027",
+    "name": "라이선스는 설정에서 표시",
+    "cat": "라이선스",
+    "spec": [
+      "SPEC-038"
+    ],
+    "tc": [
+      "TC-046"
+    ],
+    "stage": "G3",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26"
+    },
+    "note": "배포 형식 변경(onedir 단독, 2026-10-27)으로 TC-046 새 빌드 재시험 필요"
+  },
+  {
+    "id": "DIR-028",
+    "name": "리본 UI",
+    "cat": "기능",
+    "spec": [
+      "SPEC-039",
+      "SPEC-040"
+    ],
+    "tc": [
+      "TC-047",
+      "TC-048",
+      "TC-049"
+    ],
+    "stage": "완료",
+    "passed": {
+      "G1": "2026-10-26",
+      "G2": "2026-10-26",
+      "G3": "2026-10-26"
+    },
+    "note": ""
+  }
+]
+</script>
+<script>
+  const COLS = [
+    { key: "대기", label: "대기", c: "--backlog" },
+    { key: "G1", label: "G1 요구사항·사양", c: "--g1" },
+    { key: "G2", label: "G2 구현", c: "--g2" },
+    { key: "G3", label: "G3 QA", c: "--g3" },
+    { key: "완료", label: "완료", c: "--done", hidden: true },
+  ];
+  const items = JSON.parse(document.getElementById("items").textContent);
+  const gates = JSON.parse(document.getElementById("gates").textContent);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+  const board = document.getElementById("board");
+  const progress = document.getElementById("progress");
+  for (const col of COLS) {
+    const list = items.filter(it => it.stage === col.key);
+    const g = gates[col.key];
+    const gateText = g ? (g.approved ? `통과 ${esc(g.approved)} · ${esc(g.by)}` : "Gate 미통과") : "";
+    const el = document.createElement("section");
+    el.className = "col";
+    el.style.setProperty("--c", `var(${col.c})`);
+    el.innerHTML = `<header><b>${col.label}</b><span class="n">${list.length}건</span></header>
+      <div class="gate">${gateText}</div>` +
+      (list.length ? list.map(it => `<div class="card" style="--c: var(${col.c})">
+        <span class="cat">${esc(it.cat)}</span><div class="id">${esc(it.id)}</div>
+        <div class="name">${esc(it.name)}</div>
+        <div class="tags">${esc((it.spec || []).join(" "))}<br>${esc((it.tc || []).join(" "))}</div>
+        ${it.note ? `<div class="note">${esc(it.note)}</div>` : ""}</div>`).join("")
+        : `<div class="empty">없음</div>`);
+    if (!col.hidden) board.appendChild(el);
+    if (items.length && list.length) {
+      const bar = document.createElement("span");
+      bar.style.width = `${(list.length / items.length) * 100}%`;
+      bar.style.background = `var(${col.c})`;
+      bar.title = `${col.label} ${list.length}건`;
+      progress.appendChild(bar);
+    }
+  }
+
+  const done = items.filter(it => it.stage === "완료");
+  document.getElementById("done").innerHTML = done.length
+    ? done.map(it => `<tr><td class="m">${esc(it.id)}</td><td>${esc(it.name)}</td>
+        <td class="m">${esc((it.spec || []).join(", "))}</td><td class="m">${esc((it.tc || []).join(", "))}</td>
+        <td>${esc(it.passed?.G1)}</td><td>${esc(it.passed?.G2)}</td><td>${esc(it.passed?.G3)}</td></tr>`).join("")
+    : `<tr><td colspan="7" class="empty">아직 완료된 항목이 없습니다.</td></tr>`;
+</script>
+</body>
+</html>
